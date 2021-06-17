@@ -1,28 +1,10 @@
-package Compiler
-
-trait Token
-case class IntegerType(value: Int) extends Token
-case class FloatType(value: Float) extends Token
-case class NilType() extends Token
-case class OpenParens() extends Token
-case class CloseParens() extends Token
-case class Assign() extends Token
-case class Add() extends Token
-case class Subtract() extends Token
-case class Multiply() extends Token
-case class Divide() extends Token
-case class Space() extends Token
-case class Decimal() extends Token
-case class And() extends Token
-case class Or() extends Token
-case class Not() extends Token
-case class VarName(value: String) extends Token
-case class PrintFn() extends Token
-case class Unknown(value: Char) extends Token
+package com.compiler
+import com.compiler.Token
+import com.compiler.Token.*
 
 object Lexer {
   def tokenizeString(text: String): List[Token] = {
-    _tokenizeString(text.toList, List()).filter(_ != Space()).reverse
+    _tokenizeString(text.toList, List()).filter(_ != Space).reverse
   }
 
   private def _tokenizeString(expression: List[Char], tokens: List[Token]): List[Token] = {
@@ -36,16 +18,16 @@ object Lexer {
 
   private def getToken(x: Char, xs: List[Char]): (Token, List[Char]) = {
     x match
-      case '(' => (OpenParens(), xs)
-      case ')' => (CloseParens(), xs)
-      case '+' => (Add(), xs)
-      case '-' => (Subtract(), xs)
-      case '*' => (Multiply(), xs)
-      case '/' => (Divide(), xs)
+      case '(' => (OpenParens, xs)
+      case ')' => (CloseParens, xs)
+      case '+' => (Add, xs)
+      case '-' => (Subtract, xs)
+      case '*' => (Multiply, xs)
+      case '/' => (Divide, xs)
       case y if 0 to 9 contains y.asDigit => matchNumber(s"${y}", xs)
       case y if y.isLetter => matchWord(x :: xs, List())
-      case '.' => (Decimal(), xs)
-      case ' ' => (Space(), xs)
+      case '.' => (Decimal, xs)
+      case ' ' => (Space, xs)
       case _ => (Unknown(x), xs)
   }
 
@@ -64,8 +46,8 @@ object Lexer {
     try {
       IntegerType(x.toInt)
     } catch {
-      case e: Exception => {
-        new FloatType(x.toFloat)
+      case _: Exception => {
+        FloatType(x.toFloat)
       }
     }
   }
@@ -77,16 +59,16 @@ object Lexer {
           case y if y.isLetter => matchWord(xs, y :: word)
           case ' ' | _ => (matchWordType(word.reverse.mkString), chars)
       }
-      case Nil => throw new Exception("Word can't have 0 characters")
+      case Nil => (matchWordType(word.reverse.mkString), chars)
   }
 
   private def matchWordType(word: String): Token = {
     word match
-      case "nil" => NilType()
-      case "or" => Or()
-      case "and" => And()
-      case "not" => Not()
-      case "print" => PrintFn()
+      case "nil" => NilType
+      case "or" => Or
+      case "and" => And
+      case "not" => Not
+      case "print" => PrintFn
       case _ => VarName(word)
   }
 }
